@@ -12,6 +12,7 @@ Export-Package: org.eclipse.nebula.widgets.timeline,
  org.eclipse.nebula.widgets.timeline.figures,
  org.eclipse.nebula.widgets.timeline.figures.detail.track,
  org.eclipse.nebula.widgets.timeline.figures.detail.track.lane,
+ org.eclipse.nebula.widgets.timeline.figures.detail.track.lane.annotation,
  org.eclipse.nebula.widgets.timeline.impl,
  org.eclipse.nebula.widgets.timeline.jface,
  org.eclipse.nebula.widgets.timeline.util

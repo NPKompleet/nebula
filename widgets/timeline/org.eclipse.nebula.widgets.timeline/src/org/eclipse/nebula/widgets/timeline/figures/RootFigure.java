@@ -37,6 +37,7 @@ import org.eclipse.nebula.widgets.timeline.figures.detail.track.TrackFigure;
 import org.eclipse.nebula.widgets.timeline.figures.detail.track.TracksLayer;
 import org.eclipse.nebula.widgets.timeline.figures.detail.track.lane.EventFigure;
 import org.eclipse.nebula.widgets.timeline.figures.detail.track.lane.LaneFigure;
+import org.eclipse.nebula.widgets.timeline.figures.detail.track.lane.annotation.IAnnotationFigure;
 import org.eclipse.nebula.widgets.timeline.figures.overview.OverviewCursorFigure;
 import org.eclipse.nebula.widgets.timeline.figures.overview.OverviewCursorLayer;
 import org.eclipse.nebula.widgets.timeline.figures.overview.OverviewEventFigure;
@@ -377,6 +378,10 @@ public class RootFigure extends Figure implements IStyledFigure {
 		fDetailToOverviewMap.put(eventFigure, overviewEventFigure);
 
 		return eventFigure;
+	}
+
+	public void addAnnotationFigure(LaneFigure parent, IAnnotationFigure figure) {
+		parent.annotate(figure);
 	}
 
 	/**

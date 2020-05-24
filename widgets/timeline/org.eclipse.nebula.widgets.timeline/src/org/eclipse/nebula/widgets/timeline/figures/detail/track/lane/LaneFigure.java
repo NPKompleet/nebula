@@ -27,6 +27,7 @@ import org.eclipse.nebula.widgets.timeline.TimeBaseConverter;
 import org.eclipse.nebula.widgets.timeline.Timing;
 import org.eclipse.nebula.widgets.timeline.figures.IStyledFigure;
 import org.eclipse.nebula.widgets.timeline.figures.RootFigure;
+import org.eclipse.nebula.widgets.timeline.figures.detail.track.lane.annotation.IAnnotationFigure;
 import org.eclipse.nebula.widgets.timeline.jface.ITimelineStyleProvider;
 
 public class LaneFigure extends Figure implements IStyledFigure {
@@ -55,9 +56,14 @@ public class LaneFigure extends Figure implements IStyledFigure {
 	public void add(IFigure figure, Object constraint, int index) {
 		super.add(figure, constraint, index);
 
-		getChildren().sort((o1, o2) -> {
-			return ((EventFigure) o1).compareTo((EventFigure) o2);
-		});
+		// getChildren().sort((o1, o2) -> {
+		// return ((EventFigure) o1).compareTo((EventFigure) o2);
+		// });
+	}
+
+	// My own code
+	public void annotate(IAnnotationFigure figure) {
+		super.add((IFigure) figure, figure.getTiming());
 	}
 
 	public List<EventFigure> getEventFigures() {
@@ -67,6 +73,12 @@ public class LaneFigure extends Figure implements IStyledFigure {
 	private class LaneLayout extends XYLayout {
 
 		private Rectangle getConstraintAsRectangle(IFigure figure) {
+			// Annotation
+			if (figure instanceof IAnnotationFigure) {
+				final IAnnotationFigure fig = (IAnnotationFigure) figure;
+				return new PrecisionRectangle(fig.getTimeStamp(), 0, fig.getAnnotatorWidth(), 1);
+			}
+
 			final ITimelineEvent event = (ITimelineEvent) getConstraint(figure);
 
 			return new PrecisionRectangle(event.getStartTimestamp(), 0, event.getDuration(), 1);
@@ -77,11 +89,19 @@ public class LaneFigure extends Figure implements IStyledFigure {
 			final TimeBaseConverter timeViewDetails = RootFigure.getRootFigure(parent).getTimeViewDetails();
 
 			for (final Object figure : getChildren()) {
-				final ITimelineEvent event = (ITimelineEvent) getConstraint((IFigure) figure);
+				final Rectangle screenBounds;
+				if (figure instanceof IAnnotationFigure) {
+					final IAnnotationFigure fig = (IAnnotationFigure) figure;
+					final Timing screenCoordinates = timeViewDetails.toDetailCoordinates(fig.getTiming());
+					screenBounds = new PrecisionRectangle((screenCoordinates.getTimestamp() - (fig.getAnnotatorWidth() / 2.0)) + 1, getBounds().y(),
+							fig.getAnnotatorWidth(), getBounds().height());
+				} else {
+					final ITimelineEvent event = (ITimelineEvent) getConstraint((IFigure) figure);
 
-				final Timing screenCoordinates = timeViewDetails.toDetailCoordinates(event.getTiming());
-				final Rectangle screenBounds = new PrecisionRectangle(screenCoordinates.getTimestamp(), getBounds().y(), screenCoordinates.getDuration(),
-						getBounds().height());
+					final Timing screenCoordinates = timeViewDetails.toDetailCoordinates(event.getTiming());
+					screenBounds = new PrecisionRectangle(screenCoordinates.getTimestamp(), getBounds().y(), screenCoordinates.getDuration(),
+							getBounds().height());
+				}
 
 				if (screenBounds.width() == 0)
 					screenBounds.setWidth(1);

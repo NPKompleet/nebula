@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 Phenomenon and others.
+ * Copyright (c) 2020 Philip Okonkwo and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -11,52 +11,31 @@
 
 package org.eclipse.nebula.widgets.timeline.figures.detail.track.lane.annotation;
 
-import org.eclipse.draw2d.BorderLayout;
+import java.util.concurrent.TimeUnit;
+
 import org.eclipse.draw2d.Figure;
-import org.eclipse.draw2d.IFigure;
-import org.eclipse.draw2d.PositionConstants;
-import org.eclipse.draw2d.RectangleFigure;
-import org.eclipse.draw2d.Triangle;
 import org.eclipse.draw2d.geometry.Dimension;
-import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.nebula.widgets.timeline.Timing;
 import org.eclipse.nebula.widgets.timeline.jface.ITimelineStyleProvider;
 
 /**
- * @author Phenomenon
+ * @author Philip Okonkwo
  *
  */
 public class AnnotationFigure extends Figure implements IAnnotationFigure {
 
 	private static final int ANNOTATOR_WIDTH = 13;
 
-	private static final int TRIANGLE_SIZE = 6;
+	Timing timing;
 
-	private final RectangleFigure fLineFigure;
-
-	Timing timeStamp;
-
-	public AnnotationFigure(double timeStamp, ITimelineStyleProvider styleProvider) {
-		setLayoutManager(new AnnotationFigureLayout());
-		this.timeStamp = new Timing(timeStamp);
+	public AnnotationFigure(long timeStamp, ITimelineStyleProvider styleProvider) {
+		this.timing = new Timing(timeStamp);
 		updateStyle(styleProvider);
 
-		final Triangle topTriangle = new Triangle();
-		topTriangle.setSize(TRIANGLE_SIZE, TRIANGLE_SIZE);
-		topTriangle.setOpaque(true);
-		topTriangle.setDirection(PositionConstants.RIGHT);
-		add(topTriangle, BorderLayout.BOTTOM);
+	}
 
-		final Triangle bottomTriangle = new Triangle();
-		bottomTriangle.setSize(TRIANGLE_SIZE, TRIANGLE_SIZE);
-		topTriangle.setOpaque(true);
-		bottomTriangle.setDirection(PositionConstants.LEFT);
-		add(bottomTriangle, BorderLayout.TOP);
-
-		fLineFigure = new RectangleFigure();
-		fLineFigure.setLineWidth(1);
-		add(fLineFigure, BorderLayout.CENTER);
-
+	public AnnotationFigure(long timeStamp, TimeUnit timeUnit, ITimelineStyleProvider styleProvider) {
+		this(timeUnit.toNanos(timeStamp), styleProvider);
 	}
 
 	@Override
@@ -70,20 +49,6 @@ public class AnnotationFigure extends Figure implements IAnnotationFigure {
 		setBackgroundColor(styleProvider.getCursorColor());
 	}
 
-	private class AnnotationFigureLayout extends BorderLayout {
-
-		@Override
-		public void layout(IFigure container) {
-			super.layout(container);
-
-			final Rectangle bounds = fLineFigure.getBounds();
-			bounds.performTranslate((bounds.width() / 2), 0);
-			bounds.setWidth(1);
-			bounds.setY(0);
-			bounds.setHeight(container.getBounds().height() + 200);
-		}
-	}
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -91,7 +56,7 @@ public class AnnotationFigure extends Figure implements IAnnotationFigure {
 	 */
 	@Override
 	public double getTimeStamp() {
-		return timeStamp.getTimestamp();
+		return timing.getTimestamp();
 	}
 
 	/*
@@ -111,7 +76,7 @@ public class AnnotationFigure extends Figure implements IAnnotationFigure {
 	 */
 	@Override
 	public Timing getTiming() {
-		return timeStamp;
+		return timing;
 	}
 
 }

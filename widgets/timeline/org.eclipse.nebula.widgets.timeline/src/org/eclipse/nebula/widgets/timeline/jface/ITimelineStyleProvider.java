@@ -122,6 +122,13 @@ public interface ITimelineStyleProvider {
 	Color getCursorColor();
 
 	/**
+	 * Get the color for annotations.
+	 *
+	 * @return annotation color
+	 */
+	Color getAnnotationColor();
+
+	/**
 	 * Get the color for a selected cursor.
 	 *
 	 * @return selected cursor color

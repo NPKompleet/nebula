@@ -12,32 +12,28 @@
 package org.eclipse.nebula.widgets.timeline.figures.detail.track.lane;
 
 import java.util.List;
-import java.util.ListIterator;
 import java.util.stream.Collectors;
 
-import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.IFigure;
-import org.eclipse.draw2d.XYLayout;
+import org.eclipse.draw2d.LayeredPane;
 import org.eclipse.draw2d.geometry.Dimension;
-import org.eclipse.draw2d.geometry.Insets;
-import org.eclipse.draw2d.geometry.PrecisionRectangle;
-import org.eclipse.draw2d.geometry.Rectangle;
-import org.eclipse.nebula.widgets.timeline.ITimelineEvent;
-import org.eclipse.nebula.widgets.timeline.TimeBaseConverter;
-import org.eclipse.nebula.widgets.timeline.Timing;
 import org.eclipse.nebula.widgets.timeline.figures.IStyledFigure;
-import org.eclipse.nebula.widgets.timeline.figures.RootFigure;
+import org.eclipse.nebula.widgets.timeline.figures.detail.track.lane.annotation.AnnotationLayer;
 import org.eclipse.nebula.widgets.timeline.figures.detail.track.lane.annotation.IAnnotationFigure;
 import org.eclipse.nebula.widgets.timeline.jface.ITimelineStyleProvider;
 
-public class LaneFigure extends Figure implements IStyledFigure {
+public class LaneFigure extends LayeredPane implements IStyledFigure {
 
 	private int fPreferredHeight;
+	private final EventLayer eventLayer;
+	private final AnnotationLayer annotationLayer;
 
 	public LaneFigure(ITimelineStyleProvider styleProvider) {
-		setLayoutManager(new LaneLayout());
-
 		updateStyle(styleProvider);
+		eventLayer = new EventLayer();
+		add(eventLayer);
+		annotationLayer = new AnnotationLayer();
+		add(annotationLayer);
 	}
 
 	@Override
@@ -51,91 +47,25 @@ public class LaneFigure extends Figure implements IStyledFigure {
 		return new Dimension(wHint, fPreferredHeight);
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void add(IFigure figure, Object constraint, int index) {
-		super.add(figure, constraint, index);
-
-		// getChildren().sort((o1, o2) -> {
-		// return ((EventFigure) o1).compareTo((EventFigure) o2);
-		// });
+	public void addEventFigure(IFigure figure, Object constraint) {
+		eventLayer.add(figure, constraint);
 	}
 
-	// My own code
 	public void annotate(IAnnotationFigure figure) {
-		super.add((IFigure) figure, figure.getTiming());
+		annotationLayer.add((IFigure) figure, figure.getTiming());
 	}
 
 	public List<EventFigure> getEventFigures() {
-		return ((List<?>) getChildren()).stream().filter(p -> p instanceof EventFigure).map(p -> (EventFigure) p).collect(Collectors.toList());
+		return ((List<?>) eventLayer.getChildren()).stream().filter(p -> p instanceof EventFigure).map(p -> (EventFigure) p).collect(Collectors.toList());
 	}
 
-	private class LaneLayout extends XYLayout {
-
-		private Rectangle getConstraintAsRectangle(IFigure figure) {
-			// Annotation
-			if (figure instanceof IAnnotationFigure) {
-				final IAnnotationFigure fig = (IAnnotationFigure) figure;
-				return new PrecisionRectangle(fig.getTimeStamp(), 0, fig.getAnnotatorWidth(), 1);
-			}
-
-			final ITimelineEvent event = (ITimelineEvent) getConstraint(figure);
-
-			return new PrecisionRectangle(event.getStartTimestamp(), 0, event.getDuration(), 1);
-		}
-
-		@Override
-		public void layout(IFigure parent) {
-			final TimeBaseConverter timeViewDetails = RootFigure.getRootFigure(parent).getTimeViewDetails();
-
-			for (final Object figure : getChildren()) {
-				final Rectangle screenBounds;
-				if (figure instanceof IAnnotationFigure) {
-					final IAnnotationFigure fig = (IAnnotationFigure) figure;
-					final Timing screenCoordinates = timeViewDetails.toDetailCoordinates(fig.getTiming());
-					screenBounds = new PrecisionRectangle((screenCoordinates.getTimestamp() - (fig.getAnnotatorWidth() / 2.0)) + 1, getBounds().y(),
-							fig.getAnnotatorWidth(), getBounds().height());
-				} else {
-					final ITimelineEvent event = (ITimelineEvent) getConstraint((IFigure) figure);
-
-					final Timing screenCoordinates = timeViewDetails.toDetailCoordinates(event.getTiming());
-					screenBounds = new PrecisionRectangle(screenCoordinates.getTimestamp(), getBounds().y(), screenCoordinates.getDuration(),
-							getBounds().height());
-				}
-
-				if (screenBounds.width() == 0)
-					screenBounds.setWidth(1);
-
-				((IFigure) figure).setBounds(screenBounds);
-			}
-		}
-
-		/**
-		 * This is a copy of the parent method. Only change is that we call getContraintAsRectangle() instead of directly accessing the constraints member.
-		 */
-		@Override
-		protected Dimension calculatePreferredSize(IFigure f, int wHint, int hHint) {
-			final Rectangle rect = new Rectangle();
-			final ListIterator children = f.getChildren().listIterator();
-			while (children.hasNext()) {
-				final IFigure child = (IFigure) children.next();
-				Rectangle r = getConstraintAsRectangle(child);
-				if (r == null)
-					continue;
-
-				if ((r.width == -1) || (r.height == -1)) {
-					final Dimension preferredSize = child.getPreferredSize(r.width, r.height);
-					r = r.getCopy();
-					if (r.width == -1)
-						r.width = preferredSize.width;
-					if (r.height == -1)
-						r.height = preferredSize.height;
-				}
-				rect.union(r);
-			}
-			final Dimension d = rect.getSize();
-			final Insets insets = f.getInsets();
-			return new Dimension(d.width + insets.getWidth(), d.height + insets.getHeight()).union(getBorderPreferredSize(f));
-		}
+	public void revalidateChildren() {
+		eventLayer.revalidate();
+		annotationLayer.revalidate();
 	}
+
+	public EventLayer getEventLayer() {
+		return eventLayer;
+	}
+
 }

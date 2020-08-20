@@ -45,8 +45,8 @@ public class AnnotationFigure extends Figure implements IAnnotationFigure {
 
 	@Override
 	public void updateStyle(ITimelineStyleProvider styleProvider) {
-		setForegroundColor(styleProvider.getCursorColor());
-		setBackgroundColor(styleProvider.getCursorColor());
+		setForegroundColor(styleProvider.getAnnotationColor());
+		setBackgroundColor(styleProvider.getAnnotationColor());
 	}
 
 	/*

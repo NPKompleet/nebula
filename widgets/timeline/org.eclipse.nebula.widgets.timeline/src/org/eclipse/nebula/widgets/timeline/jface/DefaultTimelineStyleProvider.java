@@ -103,6 +103,11 @@ public class DefaultTimelineStyleProvider implements ITimelineStyleProvider {
 	}
 
 	@Override
+	public Color getAnnotationColor() {
+		return ColorConstants.white;
+	}
+
+	@Override
 	public Color getSelectedCursorColor() {
 		return ColorConstants.red;
 	}
